@@ -1,5 +1,6 @@
 # app.py - Backend ساده با Flask
 from flask import Flask, jsonify, render_template
+from flask_cors import CORS # 💡 اضافه شده برای CORS
 from datetime import datetime, timedelta
 import random
 
@@ -76,11 +77,13 @@ def generate_random_assignment(jobs, teams):
 
 # --- تنظیمات Flask ---
 app = Flask(__name__)
+CORS(app) # 💡 خط کلیدی: فعال کردن CORS 
 
-# مسیر اصلی: نمایش صفحه HTML
+# مسیر اصلی: نمایش صفحه HTML (فقط برای تست محلی کاربرد دارد)
 @app.route('/')
 def index():
-    return render_template('index.html')
+    # Render در این محیط نیازی به این بخش ندارد چون ما فقط از /optimize استفاده می‌کنیم
+    return render_template('index.html') 
 
 # مسیر API: اجرای منطق و بازگرداندن JSON
 @app.route('/optimize', methods=['GET'])
@@ -88,8 +91,8 @@ def optimize():
     results = generate_random_assignment(JOBS_DATA, TEAMS_DATA)
     return jsonify(results)
 
+# 💡 بخش اجرای محلی که برای Render نادیده گرفته می‌شود (و باید بماند)
 if __name__ == '__main__':
-    # برای اجرای ایمن‌تر در محیط واقعی، از debug=False استفاده کنید
-    # مطمئن شوید که Flask و Jinja2 نصب شده‌اند (pip install Flask)
+    # این بخش فقط برای اجرا روی کامپیوتر خودتان است، نه روی Render
     print("نرم‌افزار نمایشی در حال اجرا است. به http://127.0.0.1:5000/ بروید.")
     app.run(debug=True)
