@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>برنامه‌ریزی هوشمند تعمیرات شبکه برق</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        @import url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.0.3/Vazirmatn.css');
+        
+        :root {
+            --primary-blue: #004d99;
+            --secondary-blue: #0066cc;
+            --light-blue: #eef2f7;
+            --success-green: #4CAF50;
+            --warning-orange: #ff9800;
+            --danger-red: #e74c3c;
+            --dark-gray: #2c3e50;
+            --medium-gray: #34495e;
+            --light-gray: #bdc3c7;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body { 
+            font-family: 'Vazirmatn', Tahoma, Arial, sans-serif; 
+            line-height: 1.8; 
+            margin: 0; 
+            background-color: var(--light-blue); 
+            color: var(--dark-gray);
+            direction: rtl;
+            text-align: right;
+        }
+        
+        .header-bar {
+            background-color: var(--primary-blue);
+            color: white;
+            padding: 10px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        
+        .header-bar h1 {
+            color: white;
+            margin: 0;
+            padding: 0;
+            font-size: 1.5em;
+            flex-grow: 1;
+            text-align: center;
+        }
+        
+        .logo-container {
+            width: 150px;
+            text-align: center;
+        }
+        
+        .logo-container img {
+            height: 40px; 
+            width: auto;
+            max-width: 100%;
+            border-radius: 4px;
+        }
+        
+        .container { 
+            max-width: 1200px; 
+            margin: 30px auto; 
+            background: white; 
+            padding: 40px; 
+            border-radius: 12px; 
+            box-shadow: 0 8px 20px rgba(0, 77, 153, 0.1); 
+        }
+        
+        .tab-container {
+            margin-bottom: 30px;
+        }
+        
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--light-gray);
+            margin-bottom: 20px;
+        }
+        
+        .tab {
+            padding: 12px 24px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-family: inherit;
+            font-size: 1rem;
+            color: var(--medium-gray);
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            color: var(--secondary-blue);
+            border-bottom: 3px solid var(--secondary-blue);
+            font-weight: 600;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        h2 { 
+            color: var(--secondary-blue); 
+            margin-top: 35px; 
+            border-bottom: 1px solid #e0e7ee;
+            padding-bottom: 8px;
+        }
+        
+        .form-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid var(--light-gray);
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        
+        label { 
+            display: block; 
+            margin-top: 20px; 
+            font-weight: 600; 
+            color: var(--medium-gray);
+        }
+        
+        input, select, textarea { 
+            padding: 12px; 
+            border-radius: 6px; 
+            border: 1px solid var(--light-gray); 
+            width: 100%; 
+            box-sizing: border-box; 
+            margin-bottom: 25px; 
+            font-family: inherit;
+            font-size: 1rem;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+        }
+        
+        .checkbox-item input {
+            width: auto;
+            margin: 0 8px 0 0;
+        }
+        
+        button { 
+            padding: 12px 25px; 
+            background-color: var(--success-green); 
+            color: white; 
+            border: none; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-size: 1.1rem; 
+            transition: background-color 0.3s, transform 0.1s;
+            box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+            margin: 10px 5px;
+        }
+        
+        button:hover { 
+            background-color: #45a049; 
+            transform: translateY(-2px);
+        }
+        
+        button:disabled {
+            background-color: var(--light-gray);
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        
+        button.secondary {
+            background-color: var(--secondary-blue);
+        }
+        
+        button.warning {
+            background-color: var(--warning-orange);
+        }
+        
+        button.danger {
+            background-color: var(--danger-red);
+        }
+        
+        .team-box { 
+            border: 1px solid var(--light-gray); 
+            padding: 20px; 
+            margin-bottom: 25px; 
+            border-radius: 8px; 
+            background-color: #f9f9f9; 
+            transition: box-shadow 0.3s;
+        }
+        
+        .job-item { 
+            margin-right: 25px; 
+            list-style-type: disc; 
+            color: var(--medium-gray); 
+            padding: 5px 0;
+        }
+        
+        .time-info { 
+            font-weight: bold; 
+            color: var(--danger-red);
+            font-size: 0.95rem;
+        }
+        
+        .summary { 
+            margin-top: 15px; 
+            font-style: italic; 
+            font-size: 1rem;
+            color: #2980b9;
+            border-top: 1px dashed #ecf0f1;
+            padding-top: 10px;
+        }
+        
+        .error { 
+            color: var(--danger-red); 
+            font-weight: 600; 
+            background-color: #fbecec;
+            padding: 15px;
+            border-radius: 6px;
+        }
+        
+        .success { 
+            color: var(--success-green); 
+            font-weight: 600; 
+            background-color: #ecf7ec;
+            padding: 15px;
+            border-radius: 6px;
+        }
+        
+        .map-container {
+            height: 400px;
+            margin: 20px 0;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--light-gray);
+        }
+        
+        .coordination-timeline {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f5f5f5;
+            border-radius: 8px;
+        }
+        
+        .timeline-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .timeline-hours {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--light-gray);
+            padding-bottom: 5px;
+        }
+        
+        .timeline-hour {
+            flex: 1;
+            text-align: center;
+            font-size: 0.8rem;
+        }
+        
+        .timeline-content {
+            height: 100px;
+            position: relative;
+            background-color: white;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        
+        .team-marker {
+            position: absolute;
+            height: 30px;
+            background-color: rgba(0, 77, 153, 0.7);
+            border-radius: 4px;
+            cursor: move;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.8rem;
+            padding: 0 5px;
+        }
+        
+        .capacity-meter {
+            height: 10px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+        
+        .capacity-fill {
+            height: 100%;
+            background-color: var(--success-green);
+            transition: width 0.3s, background-color 0.3s;
+        }
+        
+        .capacity-fill.warning {
+            background-color: var(--warning-orange);
+        }
+        
+        .capacity-fill.danger {
+            background-color: var(--danger-red);
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        .data-table th, .data-table td {
+            border: 1px solid var(--light-gray);
+            padding: 12px;
+            text-align: right;
+        }
+        
+        .data-table th {
+            background-color: var(--light-blue);
+            color: var(--secondary-blue);
+            font-weight: 600;
+        }
+        
+        .data-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <div class="header-bar">
+        <div class="logo-container">
+            <img src="mylogo.jpg" alt="لوگوی پروژه"> 
+        </div>
+        <h1>برنامه‌ریزی هوشمند تعمیرات شبکه برق</h1> 
+        <div class="logo-container">
+            <img src="logo.jpg" alt="لوگوی شرکت برق">
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="tab-container">
+            <div class="tabs">
+                <button class="tab active" data-tab="repair-jobs">کار تعمیراتی</button>
+                <button class="tab" data-tab="repair-teams">گروه/اکیپ تعمیراتی</button>
+                <button class="tab" data-tab="geographic-info">اطلاعات جغرافیایی</button>
+                <button class="tab" data-tab="optimization">بهینه‌سازی و برنامه‌ریزی</button>
+            </div>
+            
+            <!-- تب کار تعمیراتی -->
+            <div id="repair-jobs" class="tab-content active">
+                <h2>ثبت کار تعمیراتی جدید</h2>
+                
+                <div class="form-section">
+                    <label for="job-id">شناسه کار:</label>
+                    <select id="job-id">
+                        <option value="">-- انتخاب شناسه کار --</option>
+                        <option value="a1">A1</option>
+                        <option value="a2">A2</option>
+                        <option value="a3">A3</option>
+                        <option value="a4">A4</option>
+                        <option value="a5">A5</option>
+                        <option value="a6">A6</option>
+                        <option value="a7">A7</option>
+                        <option value="a8">A8</option>
+                        <option value="a9">A9</option>
+                        <option value="a10">A10</option>
+                        <option value="a11">A11</option>
+                        <option value="a12">A12</option>
+                        <option value="a13">A13</option>
+                        <option value="a14">A14</option>
+                        <option value="a15">A15</option>
+                        <option value="a16">A16</option>
+                        <option value="a17">A17</option>
+                        <option value="a18">A18</option>
+                        <option value="a19">A19</option>
+                        <option value="a20">A20</option>
+                        <option value="other">سایر (تعریف دستی)</option>
+                    </select>
+                    
+                    <div id="custom-job-id" style="display: none;">
+                        <label for="manual-job-id">شناسه کار (تعریف دستی):</label>
+                        <input type="text" id="manual-job-id" placeholder="مثال: B15">
+                    </div>
+                    
+                    <label for="job-location">مکان کار (نقاط شبکه توزیع):</label>
+                    <input type="text" id="job-location" placeholder="آدرس یا موقعیت جغرافیایی">
+                    
+                    <label for="job-priority">اولویت کار:</label>
+                    <select id="job-priority">
+                        <option value="low">کم</option>
+                        <option value="medium">متوسط</option>
+                        <option value="high">بالا</option>
+                        <option value="urgent">اضطراری</option>
+                    </select>
+                    
+                    <label>تخصص مورد نیاز:</label>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="specialty-lighting" value="روشنایی معابر">
+                            <label for="specialty-lighting">روشنایی معابر</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="specialty-overhead" value="شبکه هوایی">
+                            <label for="specialty-overhead">شبکه هوایی</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="specialty-underground" value="شبکه زمینی">
+                            <label for="specialty-underground">شبکه زمینی</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="specialty-panel" value="تابلو">
+                            <label for="specialty-panel">تابلو</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="specialty-multi" value="چندتخصصی">
+                            <label for="specialty-multi">چندتخصصی</label>
+                        </div>
+                    </div>
+                    
+                    <label for="crew-capacity">ظرفیت اجرایی مورد نیاز (تعداد نفر-ساعت):</label>
+                    <input type="number" id="crew-capacity" min="1" max="48" value="4">
+                    
+                    <label for="job-status">وضعیت کار:</label>
+                    <select id="job-status">
+                        <option value="scheduled">زمان‌بندی شده توسط پلنر</option>
+                        <option value="emergency">اضطراری</option>
+                    </select>
+                    
+                    <label for="time-limit">محدودیت زمانی (روز کاری):</label>
+                    <input type="number" id="time-limit" min="1" max="10" value="5">
+                    
+                    <button id="save-job" class="secondary">ذخیره کار تعمیراتی</button>
+                </div>
+                
+                <h2>هماهنگی بین گروهی برای کارهای چندتخصصی</h2>
+                <div class="coordination-timeline">
+                    <div class="timeline-header">
+                        <span>توالی ورود تیم‌ها</span>
+                        <span>ساعت کاری: ۸:۰۰ تا ۱۶:۰۰</span>
+                    </div>
+                    <div class="timeline-hours">
+                        <div class="timeline-hour">۸:۰۰</div>
+                        <div class="timeline-hour">۹:۰۰</div>
+                        <div class="timeline-hour">۱۰:۰۰</div>
+                        <div class="timeline-hour">۱۱:۰۰</div>
+                        <div class="timeline-hour">۱۲:۰۰</div>
+                        <div class="timeline-hour">۱۳:۰۰</div>
+                        <div class="timeline-hour">۱۴:۰۰</div>
+                        <div class="timeline-hour">۱۵:۰۰</div>
+                        <div class="timeline-hour">۱۶:۰۰</div>
+                    </div>
+                    <div class="timeline-content" id="team-sequence-timeline">
+                        <!-- تیم‌ها در اینجا با درگ و دراپ قابل جابجایی خواهند بود -->
+                    </div>
+                </div>
+                
+                <h2>لیست کارهای تعمیراتی</h2>
+                <table class="data-table" id="jobs-table">
+                    <thead>
+                        <tr>
+                            <th>شناسه کار</th>
+                            <th>مکان</th>
+                            <th>اولویت</th>
+                            <th>تخصص مورد نیاز</th>
+                            <th>ظرفیت</th>
+                            <th>وضعیت</th>
+                            <th>عملیات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- داده‌ها به صورت داینامیک پر می‌شوند -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- تب گروه/اکیپ تعمیراتی -->
+            <div id="repair-teams" class="tab-content">
+                <h2>ثبت گروه/اکیپ تعمیراتی جدید</h2>
+                
+                <div class="form-section">
+                    <label for="team-id">شناسه گروه:</label>
+                    <input type="text" id="team-id" placeholder="مثال: G1">
+                    
+                    <label for="team-name">نام گروه:</label>
+                    <select id="team-name">
+                        <option value="روشنایی">روشنایی</option>
+                        <option value="هوایی">هوایی</option>
+                        <option value="زمینی">زمینی</option>
+                        <option value="تابلو">تابلو</option>
+                    </select>
+                    
+                    <label for="crew-id">شناسه اکیپ:</label>
+                    <input type="text" id="crew-id" placeholder="مثال: C1">
+                    
+                    <label for="crew-members">تعداد اعضای اکیپ:</label>
+                    <input type="number" id="crew-members" min="2" max="10" value="3">
+                    
+                    <label for="work-station">ایستگاه کاری (مبدأ اعزام و بازگشت):</label>
+                    <input type="text" id="work-station" placeholder="آدرس ایستگاه">
+                    
+                    <label for="daily-capacity">ظرفیت روزانه (ساعت کار مؤثر):</label>
+                    <input type="number" id="daily-capacity" min="1" max="8" value="6" step="0.5">
+                    <div class="capacity-meter">
+                        <div class="capacity-fill" id="capacity-visual" style="width: 75%;"></div>
+                    </div>
+                    <small>حداکثر ظرفیت: 6 ساعت مؤثر در روز</small>
+                    
+                    <label for="work-shift">شیفت کاری:</label>
+                    <select id="work-shift">
+                        <option value="daily">روزانه</option>
+                        <option value="nightly">شبانه</option>
+                        <option value="emergency">اضطراری</option>
+                    </select>
+                    
+                    <button id="save-team" class="secondary">ذخیره اطلاعات گروه/اکیپ</button>
+                </div>
+                
+                <h2>لیست گروه‌ها و اکیپ‌های تعمیراتی</h2>
+                <table class="data-table" id="teams-table">
+                    <thead>
+                        <tr>
+                            <th>شناسه گروه</th>
+                            <th>نام گروه</th>
+                            <th>شناسه اکیپ</th>
+                            <th>تعداد اعضا</th>
+                            <th>ایستگاه کاری</th>
+                            <th>ظرفیت روزانه</th>
+                            <th>شیفت کاری</th>
+                            <th>عملیات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- داده‌ها به صورت داینامیک پر می‌شوند -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- تب اطلاعات جغرافیایی -->
+            <div id="geographic-info" class="tab-content">
+                <h2>نقشه موقعیت‌های جغرافیایی</h2>
+                <div class="map-container" id="map"></div>
+                
+                <div class="form-section">
+                    <h3>افزودن موقعیت جدید</h3>
+                    <label for="location-name">نام موقعیت:</label>
+                    <input type="text" id="location-name" placeholder="نام موقعیت">
+                    
+                    <label for="location-lat">عرض جغرافیایی (Lat):</label>
+                    <input type="number" id="location-lat" step="any" placeholder="مثال: 35.6892">
+                    
+                    <label for="location-lng">طول جغرافیایی (Lng):</label>
+                    <input type="number" id="location-lng" step="any" placeholder="مثال: 51.3890">
+                    
+                    <label for="location-type">نوع موقعیت:</label>
+                    <select id="location-type">
+                        <option value="repair">نقطه تعمیراتی</option>
+                        <option value="station">ایستگاه کاری</option>
+                    </select>
+                    
+                    <button id="add-location" class="secondary">افزودن موقعیت به نقشه</button>
+                </div>
+                
+                <h2>ماتریس زمان سفر</h2>
+                <div id="travel-matrix-container">
+                    <p>ماتریس زمان سفر بین نقاط به صورت خودکار محاسبه و نمایش داده می‌شود.</p>
+                    <button id="calculate-travel-time" class="secondary">محاسبه زمان‌های سفر</button>
+                    <div id="travel-matrix" style="margin-top: 20px; overflow-x: auto;"></div>
+                </div>
+            </div>
+            
+            <!-- تب بهینه‌سازی و برنامه‌ریزی -->
+            <div id="optimization" class="tab-content">
+                <h2>بهینه‌سازی و برنامه‌ریزی تخصیص کارها</h2>
+                
+                <div class="form-section">
+                    <p>شیوه تخصیص را انتخاب کنید و منتظر نتایج باشید. ممکن است کمی طول بکشد.</p>
+                    
+                    <label for="allocationType">نوع الگوریتم تخصیص:</label>
+                    <select id="allocationType">
+                        <option value="random">تخصیص پایه</option>
+                        <option value="shortest_travel">بهینه‌سازی بر اساس کوتاه‌ترین زمان سفر</option>
+                        <option value="balanced_load">بهینه‌سازی بر اساس توزیع بار متعادل</option>
+                    </select>
+
+                    <button onclick="getOptimizationResult()" id="optimizeButton">اجرای ماژول با نوع تخصیص انتخابی</button>
+                </div>
+                
+                <div id="results">
+                    <h2>نتایج تخصیص</h2>
+                    <p style="color: #95a5a6;">برای شروع، یک شیوه تخصیص را انتخاب و دکمه بالا را کلیک کنید.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // تنظیمات اولیه
+//        const API_URL = 'https://smart-repair-api.onrender.com/optimize'; 
+        //const API_URL = 'http://localhost:5000/optimize';
+        //const API_URL = 'https://hadi-repair.loca.lt/optimize';
+        const API_URL = 'https://hadisadoghiyazdi.loca.lt/optimize';
+
+
+        let map;
+        let markers = [];
+        let repairJobs = [];
+        let repairTeams = [];
+        let locations = [];
+        
+        // مدیریت تب‌ها
+        document.addEventListener('DOMContentLoaded', function() {
+            // مدیریت رویداد کلیک روی تب‌ها
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // حذف کلاس active از همه تب‌ها
+                    tabs.forEach(t => t.classList.remove('active'));
+                    // اضافه کردن کلاس active به تب انتخاب شده
+                    this.classList.add('active');
+                    
+                    // مخفی کردن همه محتواهای تب
+                    const tabContents = document.querySelectorAll('.tab-content');
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    
+                    // نمایش محتوای تب انتخاب شده
+                    const tabId = this.getAttribute('data-tab');
+                    document.getElementById(tabId).classList.add('active');
+                    
+                    // اگر تب نقشه فعال است، نقشه را مجدداً اندازه‌گیری کن
+                    if (tabId === 'geographic-info') {
+                        setTimeout(() => {
+                            if (map) map.invalidateSize();
+                        }, 100);
+                    }
+                });
+            });
+            
+            // مدیریت شناسه کار سفارشی
+            const jobIdSelect = document.getElementById('job-id');
+            const customJobIdDiv = document.getElementById('custom-job-id');
+            
+            jobIdSelect.addEventListener('change', function() {
+                if (this.value === 'other') {
+                    customJobIdDiv.style.display = 'block';
+                } else {
+                    customJobIdDiv.style.display = 'none';
+                }
+            });
+            
+            // مدیریت نمایش ظرفیت
+            const dailyCapacityInput = document.getElementById('daily-capacity');
+            const capacityVisual = document.getElementById('capacity-visual');
+            
+            dailyCapacityInput.addEventListener('input', function() {
+                const capacity = parseFloat(this.value);
+                const percentage = (capacity / 6) * 100;
+                capacityVisual.style.width = `${percentage}%`;
+                
+                // تغییر رنگ بر اساس ظرفیت
+                if (capacity <= 4) {
+                    capacityVisual.className = 'capacity-fill';
+                } else if (capacity <= 5.5) {
+                    capacityVisual.className = 'capacity-fill warning';
+                } else {
+                    capacityVisual.className = 'capacity-fill danger';
+                }
+            });
+            
+            // مقداردهی اولیه ظرفیت
+            dailyCapacityInput.dispatchEvent(new Event('input'));
+            
+            // ذخیره کار تعمیراتی
+            document.getElementById('save-job').addEventListener('click', saveRepairJob);
+            
+            // ذخیره گروه/اکیپ
+            document.getElementById('save-team').addEventListener('click', saveRepairTeam);
+            
+            // افزودن موقعیت به نقشه
+            document.getElementById('add-location').addEventListener('click', addLocationToMap);
+            
+            // محاسبه زمان سفر
+            document.getElementById('calculate-travel-time').addEventListener('click', calculateTravelTime);
+            
+            // مقداردهی اولیه نقشه
+            initMap();
+            
+            // بارگذاری داده‌های نمونه
+            loadSampleData();
+        });
+        
+        // تابع مقداردهی اولیه نقشه
+        function initMap() {
+            // مرکز نقشه روی تهران
+            map = L.map('map').setView([35.6892, 51.3890], 11);
+            
+            // اضافه کردن لایه نقشه OSM
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+            
+            // اضافه کردن کنترل اندازه‌گیری
+            L.control.scale().addTo(map);
+        }
+        
+        // تابع ذخیره کار تعمیراتی
+        function saveRepairJob() {
+            const jobId = document.getElementById('job-id').value === 'other' 
+                ? document.getElementById('manual-job-id').value 
+                : document.getElementById('job-id').value;
+                
+            const jobLocation = document.getElementById('job-location').value;
+            const jobPriority = document.getElementById('job-priority').value;
+            
+            // جمع‌آوری تخصص‌های انتخاب شده
+            const specialties = [];
+            if (document.getElementById('specialty-lighting').checked) specialties.push('روشنایی معابر');
+            if (document.getElementById('specialty-overhead').checked) specialties.push('شبکه هوایی');
+            if (document.getElementById('specialty-underground').checked) specialties.push('شبکه زمینی');
+            if (document.getElementById('specialty-panel').checked) specialties.push('تابلو');
+            if (document.getElementById('specialty-multi').checked) specialties.push('چندتخصصی');
+            
+            const crewCapacity = document.getElementById('crew-capacity').value;
+            const jobStatus = document.getElementById('job-status').value;
+            const timeLimit = document.getElementById('time-limit').value;
+            
+            // اعتبارسنجی
+            if (!jobId || !jobLocation) {
+                alert('لطفاً شناسه کار و مکان را وارد کنید.');
+                return;
+            }
+            
+            // ایجاد شیء کار تعمیراتی
+            const repairJob = {
+                id: jobId,
+                location: jobLocation,
+                priority: jobPriority,
+                specialties: specialties,
+                crewCapacity: crewCapacity,
+                status: jobStatus,
+                timeLimit: timeLimit,
+                timestamp: new Date().toISOString()
+            };
+            
+            // ذخیره در آرایه
+            repairJobs.push(repairJob);
+            
+            // به روزرسانی جدول
+            updateJobsTable();
+            
+            // نمایش پیام موفقیت
+            alert(`کار تعمیراتی ${jobId} با موفقیت ثبت شد.`);
+            
+            // ریست فرم
+            document.getElementById('job-id').value = '';
+            document.getElementById('job-location').value = '';
+            document.getElementById('job-priority').value = 'medium';
+            document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+            document.getElementById('crew-capacity').value = '4';
+            document.getElementById('job-status').value = 'scheduled';
+            document.getElementById('time-limit').value = '5';
+            document.getElementById('custom-job-id').style.display = 'none';
+        }
+        
+        // تابع ذخیره گروه/اکیپ
+        function saveRepairTeam() {
+            const teamId = document.getElementById('team-id').value;
+            const teamName = document.getElementById('team-name').value;
+            const crewId = document.getElementById('crew-id').value;
+            const crewMembers = document.getElementById('crew-members').value;
+            const workStation = document.getElementById('work-station').value;
+            const dailyCapacity = document.getElementById('daily-capacity').value;
+            const workShift = document.getElementById('work-shift').value;
+            
+            // اعتبارسنجی
+            if (!teamId || !crewId || !workStation) {
+                alert('لطفاً تمام فیلدهای ضروری را پر کنید.');
+                return;
+            }
+            
+            // ایجاد شیء گروه/اکیپ
+            const repairTeam = {
+                teamId: teamId,
+                teamName: teamName,
+                crewId: crewId,
+                crewMembers: crewMembers,
+                workStation: workStation,
+                dailyCapacity: dailyCapacity,
+                workShift: workShift,
+                timestamp: new Date().toISOString()
+            };
+            
+            // ذخیره در آرایه
+            repairTeams.push(repairTeam);
+            
+            // به روزرسانی جدول
+            updateTeamsTable();
+            
+            // نمایش پیام موفقیت
+            alert(`گروه/اکیپ ${teamId}-${crewId} با موفقیت ثبت شد.`);
+            
+            // ریست فرم
+            document.getElementById('team-id').value = '';
+            document.getElementById('crew-id').value = '';
+            document.getElementById('crew-members').value = '3';
+            document.getElementById('work-station').value = '';
+            document.getElementById('daily-capacity').value = '6';
+            document.getElementById('work-shift').value = 'daily';
+        }
+        
+        // تابع افزودن موقعیت به نقشه
+        function addLocationToMap() {
+            const name = document.getElementById('location-name').value;
+            const lat = parseFloat(document.getElementById('location-lat').value);
+            const lng = parseFloat(document.getElementById('location-lng').value);
+            const type = document.getElementById('location-type').value;
+            
+            // اعتبارسنجی
+            if (!name || isNaN(lat) || isNaN(lng)) {
+                alert('لطفاً تمام فیلدها را به درستی پر کنید.');
+                return;
+            }
+            
+            // تعیین رنگ و آیکون بر اساس نوع
+            const color = type === 'repair' ? 'red' : 'blue';
+            const icon = L.divIcon({
+                className: 'custom-marker',
+                html: `<div style="background-color: ${color}; width: 20px; height: 20px; border-radius: 50%; border: 2px solid white;"></div>`,
+                iconSize: [24, 24],
+                iconAnchor: [12, 12]
+            });
+            
+            // اضافه کردن مارکر به نقشه
+            const marker = L.marker([lat, lng], { icon: icon }).addTo(map);
+            marker.bindPopup(`<b>${name}</b><br>نوع: ${type === 'repair' ? 'نقطه تعمیراتی' : 'ایستگاه کاری'}<br>موقعیت: ${lat.toFixed(4)}, ${lng.toFixed(4)}`);
+            
+            // ذخیره موقعیت
+            locations.push({
+                name: name,
+                lat: lat,
+                lng: lng,
+                type: type,
+                marker: marker
+            });
+            
+            // نمایش پیام موفقیت
+            alert(`موقعیت ${name} با موفقیت به نقشه اضافه شد.`);
+            
+            // ریست فرم
+            document.getElementById('location-name').value = '';
+            document.getElementById('location-lat').value = '';
+            document.getElementById('location-lng').value = '';
+            document.getElementById('location-type').value = 'repair';
+        }
+        
+        // تابع محاسبه زمان سفر
+        function calculateTravelTime() {
+            if (locations.length < 2) {
+                alert('برای محاسبه زمان سفر حداقل به دو موقعیت نیاز است.');
+                return;
+            }
+            
+            // ایجاد ماتریس زمان سفر
+            let matrixHTML = '<table class="data-table"><thead><tr><th>از/به</th>';
+            
+            // هدر جدول
+            locations.forEach(loc => {
+                matrixHTML += `<th>${loc.name}</th>`;
+            });
+            matrixHTML += '</tr></thead><tbody>';
+            
+            // محتوای جدول
+            locations.forEach(fromLoc => {
+                matrixHTML += `<tr><td><b>${fromLoc.name}</b></td>`;
+                
+                locations.forEach(toLoc => {
+                    if (fromLoc.name === toLoc.name) {
+                        matrixHTML += '<td>-</td>';
+                    } else {
+                        // محاسبه زمان سفر تقریبی (بر اساس فاصله)
+                        const distance = calculateDistance(
+                            fromLoc.lat, fromLoc.lng, 
+                            toLoc.lat, toLoc.lng
+                        );
+                        const travelTime = Math.round(distance * 1.5); // فرض: 1.5 دقیقه به ازای هر کیلومتر
+                        matrixHTML += `<td>${travelTime} دقیقه</td>`;
+                    }
+                });
+                
+                matrixHTML += '</tr>';
+            });
+            
+            matrixHTML += '</tbody></table>';
+            
+            document.getElementById('travel-matrix').innerHTML = matrixHTML;
+        }
+        
+        // تابع محاسبه فاصله بین دو نقطه جغرافیایی (کیلومتر)
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // شعاع زمین در کیلومتر
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = 
+                Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            const distance = R * c;
+            return distance;
+        }
+        
+        // تابع به روزرسانی جدول کارها
+        function updateJobsTable() {
+            const tbody = document.querySelector('#jobs-table tbody');
+            tbody.innerHTML = '';
+            
+            repairJobs.forEach(job => {
+                const row = document.createElement('tr');
+                
+                // تعیین کلاس اولویت
+                let priorityClass = '';
+                switch(job.priority) {
+                    case 'low': priorityClass = ''; break;
+                    case 'medium': priorityClass = ''; break;
+                    case 'high': priorityClass = 'warning'; break;
+                    case 'urgent': priorityClass = 'danger'; break;
+                }
+                
+                // تعیین متن وضعیت
+                const statusText = job.status === 'scheduled' ? 'زمان‌بندی شده' : 'اضطراری';
+                
+                row.innerHTML = `
+                    <td>${job.id}</td>
+                    <td>${job.location}</td>
+                    <td class="${priorityClass}">${getPriorityText(job.priority)}</td>
+                    <td>${job.specialties.join(', ')}</td>
+                    <td>${job.crewCapacity} نفر-ساعت</td>
+                    <td>${statusText}</td>
+                    <td>
+                        <button class="danger" onclick="deleteJob('${job.id}')">حذف</button>
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+        
+        // تابع به روزرسانی جدول گروه‌ها
+        function updateTeamsTable() {
+            const tbody = document.querySelector('#teams-table tbody');
+            tbody.innerHTML = '';
+            
+            repairTeams.forEach(team => {
+                const row = document.createElement('tr');
+                
+                // تعیین کلاس ظرفیت
+                let capacityClass = '';
+                const capacity = parseFloat(team.dailyCapacity);
+                if (capacity > 5.5) capacityClass = 'danger';
+                else if (capacity > 4) capacityClass = 'warning';
+                
+                row.innerHTML = `
+                    <td>${team.teamId}</td>
+                    <td>${team.teamName}</td>
+                    <td>${team.crewId}</td>
+                    <td>${team.crewMembers} نفر</td>
+                    <td>${team.workStation}</td>
+                    <td class="${capacityClass}">${team.dailyCapacity} ساعت</td>
+                    <td>${getShiftText(team.workShift)}</td>
+                    <td>
+                        <button class="danger" onclick="deleteTeam('${team.teamId}', '${team.crewId}')">حذف</button>
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+        
+        // تابع حذف کار
+        function deleteJob(jobId) {
+            if (confirm(`آیا از حذف کار ${jobId} اطمینان دارید؟`)) {
+                repairJobs = repairJobs.filter(job => job.id !== jobId);
+                updateJobsTable();
+            }
+        }
+        
+        // تابع حذف گروه
+        function deleteTeam(teamId, crewId) {
+            if (confirm(`آیا از حذف گروه ${teamId}-${crewId} اطمینان دارید؟`)) {
+                repairTeams = repairTeams.filter(team => !(team.teamId === teamId && team.crewId === crewId));
+                updateTeamsTable();
+            }
+        }
+        
+        // تابع تبدیل کد اولویت به متن فارسی
+        function getPriorityText(priority) {
+            switch(priority) {
+                case 'low': return 'کم';
+                case 'medium': return 'متوسط';
+                case 'high': return 'بالا';
+                case 'urgent': return 'اضطراری';
+                default: return 'نامشخص';
+            }
+        }
+        
+        // تابع تبدیل کد شیفت به متن فارسی
+        function getShiftText(shift) {
+            switch(shift) {
+                case 'daily': return 'روزانه';
+                case 'nightly': return 'شبانه';
+                case 'emergency': return 'اضطراری';
+                default: return 'نامشخص';
+            }
+        }
+        
+        // تابع بارگذاری داده‌های نمونه
+        function loadSampleData() {
+            // داده‌های نمونه برای کارهای تعمیراتی
+            repairJobs = [
+                {
+                    id: 'A1',
+                    location: 'خیابان ولیعصر، نرسیده به میدان ولیعصر',
+                    priority: 'high',
+                    specialties: ['روشنایی معابر'],
+                    crewCapacity: '4',
+                    status: 'scheduled',
+                    timeLimit: '3',
+                    timestamp: new Date().toISOString()
+                },
+                {
+                    id: 'A2',
+                    location: 'میدان انقلاب، خیابان کارگر شمالی',
+                    priority: 'medium',
+                    specialties: ['شبکه هوایی'],
+                    crewCapacity: '6',
+                    status: 'scheduled',
+                    timeLimit: '5',
+                    timestamp: new Date().toISOString()
+                }
+            ];
+            
+            // داده‌های نمونه برای گروه‌ها
+            repairTeams = [
+                {
+                    teamId: 'G1',
+                    teamName: 'روشنایی',
+                    crewId: 'C1',
+                    crewMembers: '3',
+                    workStation: 'ایستگاه مرکزی منطقه ۶',
+                    dailyCapacity: '5.5',
+                    workShift: 'daily',
+                    timestamp: new Date().toISOString()
+                },
+                {
+                    teamId: 'G2',
+                    teamName: 'هوایی',
+                    crewId: 'C1',
+                    crewMembers: '4',
+                    workStation: 'ایستگاه منطقه ۱۱',
+                    dailyCapacity: '6',
+                    workShift: 'daily',
+                    timestamp: new Date().toISOString()
+                }
+            ];
+            
+            // داده‌های نمونه برای موقعیت‌ها
+            locations = [
+                {
+                    name: 'ایستگاه مرکزی منطقه ۶',
+                    lat: 35.7152,
+                    lng: 51.4050,
+                    type: 'station'
+                },
+                {
+                    name: 'ایستگاه منطقه ۱۱',
+                    lat: 35.6892,
+                    lng: 51.3740,
+                    type: 'station'
+                },
+                {
+                    name: 'کار A1',
+                    lat: 35.7212,
+                    lng: 51.4150,
+                    type: 'repair'
+                },
+                {
+                    name: 'کار A2',
+                    lat: 35.7000,
+                    lng: 51.3900,
+                    type: 'repair'
+                }
+            ];
+            
+            // اضافه کردن موقعیت‌های نمونه به نقشه
+            locations.forEach(loc => {
+                const color = loc.type === 'repair' ? 'red' : 'blue';
+                const icon = L.divIcon({
+                    className: 'custom-marker',
+                    html: `<div style="background-color: ${color}; width: 20px; height: 20px; border-radius: 50%; border: 2px solid white;"></div>`,
+                    iconSize: [24, 24],
+                    iconAnchor: [12, 12]
+                });
+                
+                const marker = L.marker([loc.lat, loc.lng], { icon: icon }).addTo(map);
+                marker.bindPopup(`<b>${loc.name}</b><br>نوع: ${loc.type === 'repair' ? 'نقطه تعمیراتی' : 'ایستگاه کاری'}<br>موقعیت: ${loc.lat.toFixed(4)}, ${loc.lng.toFixed(4)}`);
+                loc.marker = marker;
+            });
+            
+            // به روزرسانی جداول
+            updateJobsTable();
+            updateTeamsTable();
+        }
+        
+        // تابع بهینه‌سازی (همان تابع اصلی)
+        function getOptimizationResult() {
+            const resultsDiv = document.getElementById('results');
+            const button = document.getElementById('optimizeButton');
+            
+            const selectedType = document.getElementById('allocationType').value; 
+            
+            resultsDiv.innerHTML = `<h2 style="color:#f39c12;">در حال پردازش...</h2><p>نوع تخصیص درخواستی: <b>${selectedType}</b>. لطفاً منتظر بمانید تا بک‌اند پاسخ دهد.</p>`;
+            button.disabled = true;
+
+            fetch(API_URL, {
+                method: 'POST', 
+                headers: {
+                    'Content-Type': 'application/json' 
+                },
+                body: JSON.stringify({ 
+                    "allocation_type": selectedType 
+                })
+            })
+            .then(response => {
+                button.disabled = false;
+                if (!response.ok) {
+                    throw new Error(`خطای HTTP: ${response.status}. بک‌اند در دسترس نیست یا دچار خطا شده است.`);
+                }
+                return response.json();
+            })
+            .then(data => displayResults(data))
+            .catch(error => {
+                console.error('خطا در دریافت نتایج:', error);
+                resultsDiv.innerHTML = `<h2 class="error">خطا در اتصال به ماژول بهینه‌سازی</h2><p class="error">${error.message}</p><p>بررسی کنید که آدرس API درست و سرور Render فعال باشد.</p>`;
+            });
+        }
+
+        function displayResults(data) {
+            const resultsDiv = document.getElementById('results');
+            
+             // این خط جدید را اضافه کنید
+        if (data.deployment_info) {
+                resultsDiv.innerHTML += `<div class="success" style="margin: 10px 0; padding: 10px;">${data.deployment_info}</div>`;
+                }
+
+            // نگاشت نام‌های انگلیسی به فارسی برای نمایش
+            const typeMap = {
+                'random': 'تخصیص پایه',
+                'shortest_travel': 'کمترین زمان سفر',
+                'balanced_load': 'توزیع بار متعادل'
+            };
+            const displayType = typeMap[data.type_applied] || data.type_applied;
+
+            let htmlContent = `<h2>نتایج تخصیص (الگوریتم ${displayType})</h2>`; 
+
+            if (data.team_assignments && data.team_assignments.length > 0) {
+                data.team_assignments.forEach(team => {
+                    htmlContent += `
+                        <div class="team-box">
+                            <h3>تیم: ${team.team_id}</h3>
+                            <div class="summary">
+                                • کل زمان کار: ${team.total_work_time_min} دقیقه | 
+                                • کل زمان سفر: ${team.total_travel_time_min} دقیقه
+                            </div>
+                            <h4>مسیر کارها:</h4>
+                            <ul>
+                    `;
+                    team.route.forEach(job => {
+                        htmlContent += `
+                            <li class="job-item">
+                                **${job.job_id}** (مدت: ${job.job_duration_min} دقیقه)
+                                <span class="time-info"> - شروع: ${job.start_time} | پایان: ${job.end_time} </span>
+                            </li>
+                        `;
+                    });
+                    htmlContent += `
+                            </ul>
+                        </div>
+                    `;
+                });
+            } else {
+                htmlContent += '<p>هیچ تخصیصی انجام نشد.</p>';
+            }
+
+            resultsDiv.innerHTML = htmlContent;
+        }
+    </script>
+</body>
+</html>
